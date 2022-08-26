@@ -4,5 +4,5 @@ export declare class NewsController {
     constructor(newsService: NewsService);
     findAll(): Promise<String[]>;
     findAllByDate(): Promise<String[]>;
-    findAllByKarmaUsers(): Promise<String[]>;
+    findAllByKarmaUsers(): Promise<any[]>;
 }
