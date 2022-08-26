@@ -29,8 +29,7 @@ let NewsController = class NewsController {
     async findAllByKarmaUsers() {
         const data = await this.newsService.fetchNewStoriesByKarmaUsers();
         console.log('>>>>', data);
-        const result = (0, news_service_1.findOccuringWords)(data, 10);
-        return result;
+        return data;
     }
 };
 __decorate([

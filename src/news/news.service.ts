@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as moment from 'moment';
-import { Item } from './interfaces/item.interface';
+import { Item, User } from './interfaces/item.interface';
 const axios = require('axios').default;
 
 // const url = 'https://hn.algolia.com/api/v1/search_by_date?query=nodejs';
@@ -39,7 +39,7 @@ export class NewsService {
     const rank = index + 1;
     return new Promise(async (resolve) => {
       const { data } = await axios.get(`${url}/item/${id}.json`);
-      console.log(data);
+      // console.log(data);
       resolve(data);
     });
   }
@@ -62,6 +62,7 @@ export class NewsService {
       const storiesId = data.slice(0, limit);
       const actions = storiesId.map(this.findSingleStory);
       let results = Promise.all(actions);
+      // console.log(results);
       return results;
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -86,34 +87,31 @@ export class NewsService {
     }
   }
 
-  async fetchUsers(id: string): Promise<Item[]> {
-    try {
+  async fetchSingleUser(id: string): Promise<User> {
+    return new Promise(async (resolve) => {
       const { data } = await axios.get(`${url}/user/${id}.json`);
-      if (data.karma >= 10.0) {
+      if (data.karma >= 10000) {
         const itemIds = data.submitted;
-        // const actions = itemIds.map(this.findSingleStory);
-        // console.log('action', itemIds);
-        // let results = Promise.all(itemIds);
-        return itemIds;
+        const storiesId = itemIds.slice(0, 600);
+        const userActions = storiesId.map(this.findSingleStory);
+        let userStories = Promise.all(userActions);
+        console.log('story', userStories);
+        resolve(storiesId);
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.log(error);
-        throw error;
-      }
-    }
+    });
   }
 
-  async fetchNewStoriesByKarmaUsers(): Promise<Item[]> {
+  async fetchNewStoriesByKarmaUsers(): Promise<User[]> {
     try {
       const { data } = await axios.get(`${url}/updates.json`);
-      const actions = await data.profiles.map(this.fetchUsers);
-      let users: any = Promise.all(actions);
-      console.log(users);
+      const actions = await data.profiles.map(this.fetchSingleUser);
+      // console.log('____', actions);
+      let users = Promise.all(actions);
+      console.log('+++', users);
       // call stories of users
-      const userActions = users.map(this.findSingleStory);
-      let userStories = Promise.all(userActions);
-      return userStories;
+      // const userActions = users.map(this.findSingleStory);
+      // let userStories = Promise.all(userActions);
+      return users;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.log(error);

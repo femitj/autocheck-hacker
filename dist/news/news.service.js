@@ -39,7 +39,6 @@ let NewsService = class NewsService {
         const rank = index + 1;
         return new Promise(async (resolve) => {
             const { data } = await axios.get(`${url}/item/${id}.json`);
-            console.log(data);
             resolve(data);
         });
     }
@@ -82,30 +81,26 @@ let NewsService = class NewsService {
             }
         }
     }
-    async fetchUsers(id) {
-        try {
+    async fetchSingleUser(id) {
+        return new Promise(async (resolve) => {
             const { data } = await axios.get(`${url}/user/${id}.json`);
-            if (data.karma >= 10.0) {
+            if (data.karma >= 10000) {
                 const itemIds = data.submitted;
-                return itemIds;
+                const storiesId = itemIds.slice(0, 600);
+                const userActions = storiesId.map(this.findSingleStory);
+                let userStories = Promise.all(userActions);
+                console.log('story', userStories);
+                resolve(storiesId);
             }
-        }
-        catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.log(error);
-                throw error;
-            }
-        }
+        });
     }
     async fetchNewStoriesByKarmaUsers() {
         try {
             const { data } = await axios.get(`${url}/updates.json`);
-            const actions = await data.profiles.map(this.fetchUsers);
+            const actions = await data.profiles.map(this.fetchSingleUser);
             let users = Promise.all(actions);
-            console.log(users);
-            const userActions = users.map(this.findSingleStory);
-            let userStories = Promise.all(userActions);
-            return userStories;
+            console.log('+++', users);
+            return users;
         }
         catch (error) {
             if (axios.isAxiosError(error)) {
