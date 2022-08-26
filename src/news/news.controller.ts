@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { findOccuringWords, NewsService } from './news.service';
+import { findOccuringWords } from 'src/helper';
+import { NewsService } from './news.service';
 
 @Controller('news')
 export class NewsController {
