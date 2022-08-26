@@ -8,9 +8,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NewsController = void 0;
 const common_1 = require("@nestjs/common");
@@ -19,19 +16,41 @@ let NewsController = class NewsController {
     constructor(newsService) {
         this.newsService = newsService;
     }
-    findAll(query) {
-        console.log(query);
-        const data = this.newsService.query();
-        return data;
+    async findAll() {
+        const data = await this.newsService.fetchNewStories(20);
+        const result = (0, news_service_1.findOccuringWords)(data, 10);
+        return result;
+    }
+    async findAllByDate() {
+        const data = await this.newsService.fetchNewStoriesByLastWeek();
+        const result = (0, news_service_1.findOccuringWords)(data, 10);
+        return result;
+    }
+    async findAllByKarmaUsers() {
+        const data = await this.newsService.fetchNewStoriesByKarmaUsers();
+        console.log('>>>>', data);
+        const result = (0, news_service_1.findOccuringWords)(data, 10);
+        return result;
     }
 };
 __decorate([
-    (0, common_1.Get)(),
-    __param(0, (0, common_1.Query)()),
+    (0, common_1.Get)('/custom'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], NewsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('/date'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], NewsController.prototype, "findAllByDate", null);
+__decorate([
+    (0, common_1.Get)('/karma-users'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], NewsController.prototype, "findAllByKarmaUsers", null);
 NewsController = __decorate([
     (0, common_1.Controller)('news'),
     __metadata("design:paramtypes", [news_service_1.NewsService])
