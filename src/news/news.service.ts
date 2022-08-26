@@ -3,7 +3,6 @@ import * as moment from 'moment';
 import { Item, User } from './interfaces/item.interface';
 const axios = require('axios').default;
 
-// const url = 'https://hn.algolia.com/api/v1/search_by_date?query=nodejs';
 const url = 'https://hacker-news.firebaseio.com/v0';
 
 export function findOccuringWords(arr: any[], limit: number) {
