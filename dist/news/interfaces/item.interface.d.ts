@@ -1,8 +1,11 @@
 export interface Item {
+    readonly by: String;
+    readonly descendants: String;
+    readonly kids: Number[];
+    readonly id: BigInteger;
+    readonly score: Number;
+    readonly time: Date;
     readonly title: String;
-    readonly story_title: String;
-    readonly author: String;
-    readonly created_at: Date;
+    readonly type: String;
     readonly url: String;
-    readonly story_url: String;
 }

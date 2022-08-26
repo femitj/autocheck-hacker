@@ -9,16 +9,103 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NewsService = void 0;
+exports.NewsService = exports.findOccuringWords = void 0;
 const common_1 = require("@nestjs/common");
+const moment = require("moment");
 const axios = require('axios').default;
-const url = 'https://hacker-news.firebaseio.com/v0/showstories.json?print=pretty';
+const url = 'https://hacker-news.firebaseio.com/v0';
+function findOccuringWords(arr, limit) {
+    var hs = {};
+    arr.forEach((item) => {
+        const eachTitleArr = item.title.split(' ');
+        eachTitleArr.forEach((x) => {
+            if (hs.hasOwnProperty(x)) {
+                hs[x] = hs[x] + 1;
+            }
+            else {
+                hs[x] = 1;
+            }
+        });
+    });
+    return Object.entries(hs)
+        .sort((a, b) => b[1] - a[1])
+        .map((item) => item[0])
+        .slice(0, limit);
+}
+exports.findOccuringWords = findOccuringWords;
 let NewsService = class NewsService {
     constructor() { }
-    async query() {
+    async findSingleStory(id, index) {
+        const rank = index + 1;
+        return new Promise(async (resolve) => {
+            const { data } = await axios.get(`${url}/item/${id}.json`);
+            console.log(data);
+            resolve(data);
+        });
+    }
+    async findSingleStoryWithinWeek(id, index) {
+        const rank = index + 1;
+        return new Promise(async (resolve) => {
+            const { data } = await axios.get(`${url}/item/${id}.json`);
+            const aWeekAgo = moment.unix(data.time).subtract(7, 'days');
+            if (moment.unix(data.time).isAfter(aWeekAgo)) {
+                resolve(data);
+            }
+        });
+    }
+    async fetchNewStories(limit) {
         try {
-            const { data } = await axios.get(url);
-            return data;
+            const { data } = await axios.get(`${url}/showstories.json`);
+            const storiesId = data.slice(0, limit);
+            const actions = storiesId.map(this.findSingleStory);
+            let results = Promise.all(actions);
+            return results;
+        }
+        catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.log(error);
+                throw error;
+            }
+        }
+    }
+    async fetchNewStoriesByLastWeek() {
+        try {
+            const { data } = await axios.get(`${url}/showstories.json`);
+            const actions = data.map(this.findSingleStoryWithinWeek);
+            let results = Promise.all(actions);
+            return results;
+        }
+        catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.log(error);
+                throw error;
+            }
+        }
+    }
+    async fetchUsers(id) {
+        try {
+            const { data } = await axios.get(`${url}/user/${id}.json`);
+            if (data.karma >= 10.0) {
+                const itemIds = data.submitted;
+                return itemIds;
+            }
+        }
+        catch (error) {
+            if (axios.isAxiosError(error)) {
+                console.log(error);
+                throw error;
+            }
+        }
+    }
+    async fetchNewStoriesByKarmaUsers() {
+        try {
+            const { data } = await axios.get(`${url}/updates.json`);
+            const actions = await data.profiles.map(this.fetchUsers);
+            let users = Promise.all(actions);
+            console.log(users);
+            const userActions = users.map(this.findSingleStory);
+            let userStories = Promise.all(userActions);
+            return userStories;
         }
         catch (error) {
             if (axios.isAxiosError(error)) {
