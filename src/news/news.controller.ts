@@ -25,9 +25,8 @@ export class NewsController {
   @Get('/karma-users')
   async findAllByKarmaUsers(): Promise<any[]> {
     const data = await this.newsService.fetchNewStoriesByKarmaUsers();
-    console.log('>>>>', data);
     // find 10 most occuring words
-    // const result = findOccuringWords(data, 10);
-    return data;
+    const result = findOccuringWords(data, 10);
+    return result;
   }
 }

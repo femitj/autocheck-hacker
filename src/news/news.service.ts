@@ -10,7 +10,7 @@ export class NewsService {
   constructor() {}
 
   // query a single story
-  async findSingleStory(id: number, index: number): Promise<Item> {
+  async findSingleStory(id: number): Promise<Item> {
     return new Promise(async (resolve) => {
       const { data } = await axios.get(`${url}/item/${id}.json`);
       resolve(data);
@@ -30,18 +30,15 @@ export class NewsService {
   }
 
   // query new users filter karma with 10.000 above
-  async fetchSingleUser(id: string): Promise<User> {
-    return new Promise(async (resolve) => {
-      const { data } = await axios.get(`${url}/user/${id}.json`);
-      if (data.karma >= 10000) {
-        const itemIds = data.submitted;
+  async fetchSingleUser(id: string) {
+    const { data } = await axios.get(`${url}/user/${id}.json`);
+    if (data.karma >= 10000) {
+      const itemIds = data.submitted;
+      if (itemIds.length > 600) {
         const storiesId = itemIds.slice(0, 600);
-        const userActions = storiesId.map(this.findSingleStory);
-        let userStories = Promise.all(userActions);
-        console.log('story', userStories);
-        resolve(storiesId);
+        return storiesId;
       }
-    });
+    }
   }
 
   // fetch stories
@@ -77,17 +74,22 @@ export class NewsService {
   }
 
   // query new stories by karma users
-  async fetchNewStoriesByKarmaUsers(): Promise<User[]> {
+  async fetchNewStoriesByKarmaUsers(): Promise<Item[]> {
     try {
       const { data } = await axios.get(`${url}/updates.json`);
-      const actions = await data.profiles.map(this.fetchSingleUser);
-      // console.log('____', actions);
-      let users = Promise.all(actions);
-      console.log('+++', users);
+      const actions = data.profiles.map(this.fetchSingleUser);
+      console.log(actions);
+      let users = await Promise.all(actions);
+      users = users.flat();
       // call stories of users
-      // const userActions = users.map(this.findSingleStory);
-      // let userStories = Promise.all(userActions);
-      return users;
+      const userActions = users.map(async (item) => {
+        if (item && item !== undefined && item !== null) {
+          const res = await this.findSingleStory(item);
+          return res;
+        }
+      });
+      let userStories = await Promise.all(userActions);
+      return userStories;
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.log(error);

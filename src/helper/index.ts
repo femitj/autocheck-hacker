@@ -4,17 +4,20 @@ export function findOccuringWords(arr: any[], limit: number) {
   var hs = {};
   // Iterate through array of words
   arr.forEach((item: any) => {
-    const eachTitleArr = item.title.split(' ');
-    eachTitleArr.forEach((x) => {
-      // If word already exist in Dictionary
-      // then increase it's count by 1
-      if (hs.hasOwnProperty(x)) {
-        hs[x] = hs[x] + 1;
-      } else {
-        // Otherwise add word to Dictionary
-        hs[x] = 1;
-      }
-    });
+    // only type story
+    if (item && item.type === 'story') {
+      const eachTitleArr = item.title.split(' ');
+      eachTitleArr.forEach((x) => {
+        // If word already exist in Dictionary
+        // then increase it's count by 1
+        if (hs.hasOwnProperty(x)) {
+          hs[x] = hs[x] + 1;
+        } else {
+          // Otherwise add word to Dictionary
+          hs[x] = 1;
+        }
+      });
+    }
   });
 
   return Object.entries(hs)
